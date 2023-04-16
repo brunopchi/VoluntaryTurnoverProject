@@ -18,7 +18,7 @@ from category_encoders import LeaveOneOutEncoder
 from sklearn.impute import SimpleImputer
 from imblearn.pipeline import Pipeline, make_pipeline
 from sklearn.compose import ColumnTransformer
-from lightgbm import LGBMClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 # Métricas de avaliação
 import shap
@@ -120,6 +120,76 @@ def easy_target_variable_organizer(df, target_variable):
     df_y = df.iloc[:, df.shape[1]-1]
 
     return df_x, df_y
+
+def easy_one_hot_encoder(df_x_train, df_x_test, nominal_columns):
+    """
+    Apply One Hot Encode from scikit-learn for a given list of categorical columns (Nominal). 
+    For more information check the link below:
+    https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html
+    
+    Necessary Packages
+    ------------------
+    Pandas:
+        import pandas as pd
+    Numpy:
+        import numpy as np
+    Scikit-Learn:
+        from sklearn.preprocessing import OneHotEncoder
+    Pickle:
+        import pickle
+    
+    Parameters
+    ----------
+    df_x_train : pandas.core.frame.DataFrame
+        Pandas dataframe containing all independent variables for training. 
+    df_x_test : pandas.core.frame.DataFrame
+        Pandas dataframe containing all independent variables for testing.
+    nominal_columns : list
+        List containing the names of all columns to be transformed. Preferably 
+        composed of nominal variables. 
+        
+    Returns
+    -------
+    df_x_train: pandas.core.frame.DataFrame
+        Pandas dataframe with the given columns encoded (training set).
+    df_x_test: pandas.core.frame.DataFrame
+        Pandas dataframe with the given columns encoded (testing set).
+    encoder: sklearn.preprocessing._encoders.OneHotEncoder
+        Trained encoder. Saved in './encoders_scalers/'
+    """
+    
+    # Instantiation
+    encoder = OneHotEncoder(
+        categories='auto',  # Categories per feature
+        drop=None, # Whether to drop one of the features
+        sparse_output=False, # Will return sparse matrix if set True
+        dtype='int', # Desired data type of the output
+        handle_unknown='ignore' # When an unknown category is encountered during transform, the resulting one-hot encoded columns for this feature will be all zeros.
+    )  
+
+    # Fit using train data
+    encoder.fit(df_x_train[nominal_columns])
+
+    # Apply the transformation in train and test data
+    encoded_array_train = encoder.transform(df_x_train[nominal_columns]) 
+    encoded_array_test = encoder.transform(df_x_test[nominal_columns])
+
+    # Build the dataframes preserving original indexes
+    df_x_train_dummies = pd.DataFrame(encoded_array_train, columns=encoder.get_feature_names_out(), index=df_x_train.index)
+    df_x_test_dummies = pd.DataFrame(encoded_array_test, columns=encoder.get_feature_names_out(), index=df_x_test.index)
+    
+    # Inner join to add the one hot encoded features in the original dataset
+    df_x_train = df_x_train.join(df_x_train_dummies, how='inner')
+    df_x_test = df_x_test.join(df_x_test_dummies, how='inner')
+    
+    # Removing encoded columns
+    df_x_train.drop(nominal_columns, axis = 1, inplace = True)
+    df_x_test.drop(nominal_columns, axis = 1, inplace = True)
+    
+    with open('./encoders_scalers/one_hot_encoder.pkl', mode='wb') as file:
+        pickle.dump(encoder, file)
+    
+    return df_x_train, df_x_test
 
 
 def easy_ordinal_encoder(df_x_train, df_x_test, ordinal_columns, ordinal_categories):
@@ -1037,9 +1107,9 @@ for evaluation_metric in evaluation_metric_list:
             print(model_metrics_dict_train.get('model_classification_report'), file=report)
             print('Other metrics: \n', file=report)
             print(f'Optimal probabilistic treshold: {thresh_value}', file=report)
-            print('Overall Accuracy score for test set: {0:.4f}'.format(model_metrics_dict_train.get('model_accuracy_score')), file=report)
-            print('Overall ROCAUC score for test set: {0:.4f}'.format(model_metrics_dict_train.get('model_roc_auc_score')), file=report)
-            print('Overall F1 score for test set: {0:.4f}'.format(model_metrics_dict_train.get('model_f1_score')), file=report)
+            print('Overall Accuracy score for train set: {0:.4f}'.format(model_metrics_dict_train.get('model_accuracy_score')), file=report)
+            print('Overall ROCAUC score for train set: {0:.4f}'.format(model_metrics_dict_train.get('model_roc_auc_score')), file=report)
+            print('Overall F1 score for train set: {0:.4f}'.format(model_metrics_dict_train.get('model_f1_score')), file=report)
             print(f"Error:{model_metrics_dict_train.get('model_error')}", file=report)
             print(f"Confidence interval:{model_metrics_dict_train.get('model_confidence_interval')} \n", file=report)
             print('------------------------------------------------------------', file=report)

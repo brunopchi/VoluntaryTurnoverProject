@@ -1,4 +1,4 @@
-# Modelo preditivo de recisão voluntária
+# Modelo preditivo de rsecisão voluntária
 
 Produto entregue como modelo piloto para teste e coleta de feedback. Trata-se de um modelo preditivo de recisão voluntária.
 
@@ -231,7 +231,26 @@ Para colocar o app em produção e disponibilizar portas de acesso basta executa
 streamlit run app.py
 ```
 Ao fazer isso duas URL's serão geradas. Para desenvolvimento e apresentações pode-se utilizar "Local URL", onde apenas o usuário que está com o aplicativo sendo executado,
-em sua própria máquina terá acesso. Para que usuários da MESMA rede acessem o aplicativo basta disponibilizar o link dado por "Network URL". 
+em sua própria máquina terá acesso. Para que usuários da MESMA rede acessem o aplicativo basta disponibilizar o link dado por "Network URL".
+
+## Dataset utilizado
+
+Foi utilizado um dataset público e anonimizado.
+
+Descrição dos dados:
+
+- "departamento" - o departamento a que o empregado pertence.
+- "promovido" - 1 se o empregado foi promovido nos 24 meses anteriores, 0 caso contrário.
+- "revisão" - a pontuação composta que o funcionário recebeu na sua última avaliação.
+- "projectos" - quantos projectos o funcionário está envolvido.
+- "salário" - por razões de confidencialidade, o salário vem em três níveis: baixo, médio, alto.
+- "permanência" - quantos anos o funcionário esteve na empresa.
+- "satisfação" - uma medida de satisfação do empregado, a partir de questionários.
+- "bonus" - 1 se o empregado recebeu um bonus nos 24 meses anteriores, 0 caso contrário.
+- "avg_hrs_month" - a média de horas que o empregado trabalhou num mês.
+- "left" - "sim" se o empregado acabou por sair, "não" caso contrário.
+
+Fonte das informações e dados: https://www.kaggle.com/datasets/marikastewart/employee-turnover
 
 # Suporte e feedback
 

@@ -1,0 +1,61 @@
+Model: lgbmclassifier
+Model best parameters {'lgbmclassifier__boosting_type': 'gbdt', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 7, 'lgbmclassifier__n_estimators': 500, 'lgbmclassifier__num_leaves': 7, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.4263724987172908} 
+
+Database used: Test
+GridSearchCV evaluation metric: precision
+Otimizador: optprecisionrecall 
+
+Confusion Matrix:
+[[1821  206]
+ [ 231  604]]
+
+ Classification report:
+              precision    recall  f1-score   support
+
+           0       0.89      0.90      0.89      2027
+           1       0.75      0.72      0.73       835
+
+    accuracy                           0.85      2862
+   macro avg       0.82      0.81      0.81      2862
+weighted avg       0.85      0.85      0.85      2862
+
+Other metrics: 
+
+Optimal probabilistic treshold: 0.6179
+Overall Accuracy score for test set: 0.8473
+Overall ROCAUC score for test set: 0.8109
+Overall F1 score for test set: 0.7343
+Error:0.15269042627533191
+Confidence interval:0.013177960977257795 
+
+------------------------------------------------------------ 
+
+Model: lgbmclassifier
+Database used: Train
+GridSearchCV evaluation metric: precision
+Otimizador: optprecisionrecall 
+
+Confusion Matrix:
+[[4552  177]
+ [  17 1932]]
+
+ Classification report:
+              precision    recall  f1-score   support
+
+           0       1.00      0.96      0.98      4729
+           1       0.92      0.99      0.95      1949
+
+    accuracy                           0.97      6678
+   macro avg       0.96      0.98      0.97      6678
+weighted avg       0.97      0.97      0.97      6678
+
+Other metrics: 
+
+Optimal probabilistic treshold: 0.6179
+Overall Accuracy score for train set: 0.9709
+Overall ROCAUC score for train set: 0.9769
+Overall F1 score for train set: 0.9522
+Error:0.029050613956274285
+Confidence interval:0.004028179522181604 
+
+------------------------------------------------------------

@@ -12,13 +12,17 @@ import matplotlib.pyplot as plt
 
 # Pipelines, Transformadores e Modelos
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 from category_encoders import LeaveOneOutEncoder
 from sklearn.impute import SimpleImputer
 from imblearn.pipeline import Pipeline, make_pipeline
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import IsolationForest
 from lightgbm import LGBMClassifier
+
+# Engenharia de atributos
+import featuretools as ft
 
 # Métricas de avaliação
 import shap
@@ -652,15 +656,84 @@ for evaluation_metric in evaluation_metric_list:
     df = easy_target_variable_encoder(df=df,
                                       old_target_variable='left',
                                       target_category='yes',
-                                      new_target_variable='vonluntary_turnover')
+                                      new_target_variable='left')
+
+    # ---------------------------------------- Feature Engineering ----------------------------------------
 
     # Split between dependent and independent variables
     X_df, y_df = easy_target_variable_organizer(
-        df=df, target_variable='vonluntary_turnover')
+        df=df, target_variable='left')
 
     # Stratified split of the database between training and testing
     X_train, X_test, y_train, y_test = train_test_split(
         X_df, y_df, test_size=0.30, stratify=y_df, random_state=42)
+
+    # Save raw data to GridSearchCV
+    # with open('./database/dados_gridsearchcv.pkl', mode='wb') as file:
+    #    pickle.dump([X_train, y_train, X_test, y_test], file)
+
+    # Checkpoint
+    # print('Raw data saved!')
+
+    # ----------------- Encoding for Outlier detection and implementation of Isolation Forest -----------------
+
+    # Prepare train set for Isolation Forest
+    X_train_out, y_train_out = X_train.copy(), y_train.copy()
+    X_test_out, y_test_out = X_test.copy(), y_test.copy()
+
+    columns_ordinal = [
+        'salary'
+    ]
+
+    salary = [
+        'missing',
+        'low',
+        'medium',
+        'high'
+    ]
+
+    categories_ordinal = [
+        salary
+    ]
+
+    X_train_out, X_test_out = easy_ordinal_encoder(
+        df_x_train=X_train_out,
+        df_x_test=X_test_out,
+        ordinal_columns=columns_ordinal,
+        ordinal_categories=categories_ordinal
+    )
+
+    # Leave-One-Out encoder for nominal variables
+    columns_nominal = [
+        'department'
+    ]
+
+    X_train_out, X_test_out = easy_leave_one_out_encoder(
+        df_x_train=X_train_out,
+        df_x_test=X_test_out,
+        df_y_train=y_train,
+        method='declarative',
+        nominal_columns=columns_nominal
+    )
+
+    # Identify outilers in the training dataset
+    iso = IsolationForest(
+        n_estimators=200, contamination=0.03, random_state=42)
+    yhat = iso.fit_predict(X_train_out)
+
+    # Checkpoint
+    print(f'Models Isolation Forest trained for {evaluation_metric}!')
+
+    # Save trained model for Isolation Forest
+    with open(f'./trained_models/isoforest_{evaluation_metric}.pkl', mode='wb') as file:
+        pickle.dump(iso, file)
+
+    # Checkpoint
+    print(f'Outliers detection and removal for {evaluation_metric} done!')
+
+    # Remove outliers where 1 represent inliers and -1 represent outliers:
+    X_train = X_train[np.where(yhat == 1, True, False)]
+    y_train = y_train[np.where(yhat == 1, True, False)]
 
     # Save raw data to GridSearchCV
     with open('./database/dados_gridsearchcv.pkl', mode='wb') as file:
@@ -669,19 +742,54 @@ for evaluation_metric in evaluation_metric_list:
     # Checkpoint
     print('Raw data saved!')
 
-# --------- Pipeline with output for model training and testing after hyperparameter calibration ---------
+    # --------- Pipeline with output for model training and testing after hyperparameter calibration ---------
 
-    # One hot encode for nominal variables
-    columns_nominal = [
-        'department',
+    columns_ordinal = [
         'salary'
     ]
 
-    X_train, X_test = easy_one_hot_encoder(
+    salary = [
+        'missing',
+        'low',
+        'medium',
+        'high'
+    ]
+
+    categories_ordinal = [
+        salary
+    ]
+
+    X_train, X_test = easy_ordinal_encoder(
         df_x_train=X_train,
         df_x_test=X_test,
-        nominal_columns=columns_nominal,
+        ordinal_columns=columns_ordinal,
+        ordinal_categories=categories_ordinal
     )
+
+    # Leave-One-Out encoder for nominal variables
+    columns_nominal = [
+        'department'
+    ]
+
+    X_train, X_test = easy_leave_one_out_encoder(
+        df_x_train=X_train,
+        df_x_test=X_test,
+        df_y_train=y_train,
+        method='declarative',
+        nominal_columns=columns_nominal
+    )
+
+    # One hot encode for nominal variables
+    # columns_nominal = [
+    #    'department',
+    #    'salary'
+    # ]
+
+    # X_train, X_test = easy_one_hot_encoder(
+    #    df_x_train=X_train,
+    #    df_x_test=X_test,
+    #    nominal_columns=columns_nominal,
+    # )
 
     # Feature scaling
     columns_numerical = [
@@ -706,20 +814,68 @@ for evaluation_metric in evaluation_metric_list:
     # Checkpoint
     print('Pre-processed data saved!')
 
-# -------------- Processing pipeline (gridsearch, training, testing and evaluation) -------------
+# --------------------- Datasets for Gridsearch, RFECV and Final Training -----------------------
 
     # Input for hyperparameter optimization
     with open('./database/dados_gridsearchcv.pkl', mode='rb') as file:
-        X_train, y_train, X_test, y_test = pickle.load(file)
+        X_train_grid, y_train_grid, X_test_grid, y_test_grid = pickle.load(
+            file)
 
-# --------------------- Preprocessing pipeline integrated with GridSearchCV ---------------------
+    # Loading the pre-processed base for model training
+    with open('./database/dados_pre_processados.pkl', mode='rb') as file:
+        X_train_prepro, y_train_prepro, X_test_prepro, y_test_prepro = pickle.load(
+            file)
 
-    # One hot encode for nominal variables
-    nominal_features = [
-        'department',
+# -------------- Processing pipeline (gridsearch, training, testing and evaluation) -------------
+
+    # Input for hyperparameter optimization
+    # with open('./database/dados_gridsearchcv.pkl', mode='rb') as file:
+    #    X_train, y_train, X_test, y_test = pickle.load(file)
+
+# --------------------- Preprocessing pipeline integrated with RFECV and GridSearchCV ---------------------
+
+    # Ordinal encoder for ordinal variables
+    columns_ordinal = [
         'salary'
     ]
 
+    salary = [
+        'low',
+        'medium',
+        'high'
+    ]
+
+    categories_ordinal = [
+        salary
+    ]
+
+    ordinal_features = [
+        'salary'
+    ]
+
+    ordinal_transformer = Pipeline(
+        steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('oe', OrdinalEncoder(categories=categories_ordinal,
+                                  handle_unknown='use_encoded_value',
+                                  unknown_value=np.nan,
+                                  encoded_missing_value=np.nan))
+        ]
+    )
+
+    nominal_features = [
+        'department'
+    ]
+
+    # Leave One Out encoder for nominal variables
+    nominal_transformer = Pipeline(
+        steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('loo', LeaveOneOutEncoder(return_df=True))
+        ]
+    )
+
+    # One hot encode for nominal variables
     onehot_tranformer = Pipeline(
         steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
@@ -741,6 +897,7 @@ for evaluation_metric in evaluation_metric_list:
         'avg_hrs_month'
     )
 
+    # Standard scasler transformer for numeric features
     numeric_transformer = Pipeline(
         steps=[
             ('imputer', SimpleImputer(strategy='median')),
@@ -748,18 +905,20 @@ for evaluation_metric in evaluation_metric_list:
         ]
     )
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('nominal', onehot_tranformer, nominal_features),
-            ('scaler', numeric_transformer, numeric_features)
-        ]
-    )
+    # preprocessor = ColumnTransformer(
+    #    transformers=[
+    #        ('nominal', onehot_tranformer, nominal_features),
+    #        ('ordinal', ordinal_transformer, ordinal_features),
+    #        ('nominal', nominal_transformer, nominal_features),
+    #        ('scaler', numeric_transformer, numeric_features)
+    #    ]
+    # )
 
 # -----------------------------------------------------------------------------------
 
 # ----------------------------- Compute class weightss ------------------------------
 
-    counter_train = Counter(y_train)
+    counter_train = Counter(y_train_grid)
     balance_scaler = counter_train[0]/counter_train[1]
 
 # -----------------------------------------------------------------------------------
@@ -775,9 +934,9 @@ for evaluation_metric in evaluation_metric_list:
             'lgbmclassifier__boosting_type': ['gbdt', 'dart'],
             'lgbmclassifier__learning_rate': [0.3, 0.1, 0.01],
             'lgbmclassifier__objective': ['binary'],
-            'lgbmclassifier__n_estimators': [200, 300, 500],
-            'lgbmclassifier__max_depth': [3, 5, 7],
-            'lgbmclassifier__num_leaves': [3, 5, 7],
+            'lgbmclassifier__n_estimators': [200, 300, 500, 700],
+            'lgbmclassifier__max_depth': [3, 5, 7, 9, 11],
+            'lgbmclassifier__num_leaves': [3, 5, 7, 9, 11],
             'lgbmclassifier__scale_pos_weight': [balance_scaler],
             'lgbmclassifier__random_state': [42]
         }
@@ -789,203 +948,345 @@ for evaluation_metric in evaluation_metric_list:
 
     for model_name, model_object in estimators.items():
 
+        # Instantiation of data stratification (preserves the proportion
+        # of classes between training and testing)
+        stratkf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+
+        # Feature selection with RFECV
+        rfecv = RFECV(
+            estimator=model_object,
+            step=1,
+            cv=stratkf.split(X_train_prepro, y_train_prepro),
+            scoring=evaluation_metric,
+            min_features_to_select=1,
+            n_jobs=None,
+        )
+
+        rfecv.fit(X_train_prepro, y_train_prepro)
+        feature_mapping = rfecv.support_
+        print(feature_mapping)
+
+        # Checkpoint
+        print(f'Model Selection {evaluation_metric} done!')
+
+        # Save trained model
+        with open(f'./trained_models/rfecv_selection_{evaluation_metric}.pkl', mode='wb') as file:
+            pickle.dump(rfecv.support_, file)
+
+        # Selection of the most relevant features for GridSearch, Train and Test Datasets
+        X_train_grid = X_train_grid.loc[:, rfecv.support_]
+        X_test_grid = X_test_grid.loc[:, rfecv.support_]
+        X_train_prepro = X_train_prepro.loc[:, rfecv.support_]
+        X_test_prepro = X_test_prepro.loc[:, rfecv.support_]
+
+        # -------------------- CONVERT TO A FUNCTION --------------------------
+        nominal_features = list(
+            set(nominal_features).intersection(set(X_train_prepro.columns)))
+        ordinal_features = list(
+            set(ordinal_features).intersection(set(X_train_prepro.columns)))
+        numeric_features = list(
+            set(numeric_features).intersection(set(X_train_prepro.columns)))
+
+        # Check the presence of columns to use the proper preprocessing pipeline
+        if nominal_features and ordinal_features and numeric_features:
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    ('ordinal', ordinal_transformer, ordinal_features),
+                    ('nominal', nominal_transformer, nominal_features),
+                    ('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        # Check the presence of columns to use the proper preprocessing pipeline
+        elif (not nominal_features) and ordinal_features and numeric_features:
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    ('ordinal', ordinal_transformer, ordinal_features),
+                    #('nominal', nominal_transformer, nominal_features),
+                    ('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        elif nominal_features and (not ordinal_features) and numeric_features:
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    # ('ordinal', ordinal_transformer, ordinal_features),
+                    ('nominal', nominal_transformer, nominal_features),
+                    ('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        elif nominal_features and ordinal_features and (not numeric_features):
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    ('ordinal', ordinal_transformer, ordinal_features),
+                    ('nominal', nominal_transformer, nominal_features),
+                    #('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        elif (not nominal_features) and (not ordinal_features) and numeric_features:
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    #('ordinal', ordinal_transformer, ordinal_features),
+                    #('nominal', nominal_transformer, nominal_features),
+                    ('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        elif (not nominal_features) and ordinal_features and (not numeric_features):
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    ('ordinal', ordinal_transformer, ordinal_features),
+                    #('nominal', nominal_transformer, nominal_features),
+                    #('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        elif nominal_features and (not ordinal_features) and (not numeric_features):
+
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    #('nominal', onehot_tranformer, nominal_features),
+                    #('ordinal', ordinal_transformer, ordinal_features),
+                    ('nominal', nominal_transformer, nominal_features),
+                    #('scaler', numeric_transformer, numeric_features)
+                ]
+            )
+
+        else:
+            print('This is not a valid dataset! Please check the schema!')
+
+        # -------------------- CONVERT TO A FUNCTION --------------------------
+
         # Pipeline instantiation (preprocessing and processing)
         pipe = make_pipeline(
             preprocessor,
             model_object
         )
 
-        # Instantiation of data stratification (preserves the proportion
-        # of classes between training and testing)
-        stratkf = StratifiedKFold(n_splits=5)
-
         # Instantiation of experiments with GridSearchCV
         grid_search = GridSearchCV(
             estimator=pipe,
             param_grid=params[model_name],
             scoring=evaluation_metric,
-            cv=stratkf.split(X_train, y_train),
+            cv=stratkf.split(X_train_grid, y_train_grid),
             return_train_score=True,
-            verbose=False
+            verbose=False,
+            error_score='raise'
         )
 
-        grid_search.fit(X_train, y_train)
+        grid_search.fit(X_train_grid, y_train_grid)
 
-    print(f'GridSearchCV done for {evaluation_metric}!')
+        print(f'GridSearchCV done for {evaluation_metric}!')
+        # number of elements in a list from this line
+        # print(grid_search.best_estimator_.named_steps['rfecv'].get_support())
+        # print(
+        #    len(grid_search.best_estimator_.named_steps['rfecv'].get_support()))
+        # number_of_features = len(
+        #    grid_search.best_estimator_.named_steps['rfecv'].get_support())
+        # print(grid_search.best_estimator_.n_features_)
 
-    # Loading the pre-processed base for model training
-    with open('./database/dados_pre_processados.pkl', mode='rb') as file:
-        X_train, y_train, X_test, y_test = pickle.load(file)
+        # Boolean map for selected features
+        #X_train_prepro = X_train_prepro.loc[:, grid_search.best_estimator_.named_steps['rfecv'].get_support()]
+        # Boolean map for selected features
+        #X_test_prepro = X_test_prepro.loc[:, grid_search.best_estimator_.named_steps['rfecv'].get_support()]
 
-    # Checkpoint
-    print(f'Pre-processed data loaded for {evaluation_metric}!')
+        # Loading the pre-processed base for model training
+        # with open('./database/dados_pre_processados.pkl', mode='rb') as file:
+        #    X_train, y_train, X_test, y_test = pickle.load(file)
 
-    # -----------------------------------------------------------------------------------
+        # Checkpoint
+        #print(f'Pre-processed data loaded for {evaluation_metric}!')
 
-    # ------------------ Model training with the best hyperparameters -------------------
+        # -----------------------------------------------------------------------------------
 
-    # Model instantiation
-    lgbm = LGBMClassifier(
-        boosting_type=grid_search.best_params_[
-            'lgbmclassifier__boosting_type'],
-        learning_rate=grid_search.best_params_[
-            'lgbmclassifier__learning_rate'],
-        objective=grid_search.best_params_['lgbmclassifier__objective'],
-        n_estimators=grid_search.best_params_['lgbmclassifier__n_estimators'],
-        max_depth=grid_search.best_params_['lgbmclassifier__max_depth'],
-        num_leaves=grid_search.best_params_['lgbmclassifier__num_leaves'],
-        scale_pos_weight=grid_search.best_params_[
-            'lgbmclassifier__scale_pos_weight'],
-        random_state=grid_search.best_params_['lgbmclassifier__random_state']
-    )
+        # ------------------ Model training with the best hyperparameters -------------------
 
-    # Recursive Feature Elimination (RFE) - Best results with 15 features
-    number_of_features = 15
-    rfe = RFE(estimator=lgbm, n_features_to_select=number_of_features, step=1)
+        # Model instantiation
+        lgbm = LGBMClassifier(
+            boosting_type=grid_search.best_params_[
+                'lgbmclassifier__boosting_type'],
+            learning_rate=grid_search.best_params_[
+                'lgbmclassifier__learning_rate'],
+            objective=grid_search.best_params_['lgbmclassifier__objective'],
+            n_estimators=grid_search.best_params_[
+                'lgbmclassifier__n_estimators'],
+            max_depth=grid_search.best_params_['lgbmclassifier__max_depth'],
+            num_leaves=grid_search.best_params_['lgbmclassifier__num_leaves'],
+            scale_pos_weight=grid_search.best_params_[
+                'lgbmclassifier__scale_pos_weight'],
+            random_state=grid_search.best_params_[
+                'lgbmclassifier__random_state']
+        )
 
-    # Train RFE
-    rfe.fit(X_train, y_train)
+        # Recursive Feature Elimination (RFE) - Best results with 15 features
+        #number_of_features = 15
+        #rfe = RFE(estimator=lgbm, n_features_to_select=number_of_features, step=1)
 
-    # Checkpoint
-    print(f'Models LGBM and RFE trained for {evaluation_metric}!')
+        # Train RFE
+        #rfe.fit(X_train, y_train)
 
-    # Save trained RFE model
-    with open(f'./trained_models/rfe_weighted_{evaluation_metric}.pkl', mode='wb') as file:
-        pickle.dump(rfe, file)
+        # Save trained RFE model
+        # with open(f'./trained_models/rfe_weighted_{evaluation_metric}.pkl', mode='wb') as file:
+        #    pickle.dump(rfe, file)
 
-    # Selection of the most relevant features
-    X_train = X_train.loc[:, rfe.support_]
-    X_test = X_test.loc[:, rfe.support_]
+        # Selection of the most relevant features
+        #X_train_prepro = X_train_prepro.loc[:, rfecv.support_]
+        #X_test_prepro = X_test_prepro.loc[:, rfecv.support_]
 
-    # Train the model
-    lgbm.fit(X_train, y_train)
+        # Train the model
+        lgbm.fit(X_train_prepro, y_train_prepro)
 
-    # Save trained model
-    with open(f'./trained_models/lgbmclassifier_weighted_{evaluation_metric}.pkl', mode='wb') as file:
-        pickle.dump(lgbm, file)
+        # Checkpoint
+        print(f'Models LGBM trained for {evaluation_metric}!')
 
-    # Checkpoint
-    print(f'Models LGBM and RFE saved for {evaluation_metric}!')
+        # Save trained model
+        with open(f'./trained_models/lgbmclassifier_weighted_{evaluation_metric}.pkl', mode='wb') as file:
+            pickle.dump(lgbm, file)
 
-    # Saves relevance of features for reference
-    shap_summary_plot(lgbm, X_train, X_test,
-                      f'{model_name}_{evaluation_metric}')
+        # Checkpoint
+        print(f'Model LGBM saved for {evaluation_metric}!')
 
-    # Class prediction of the minority class (1) for train set
-    y_pred_train = lgbm.predict(X_train)
+        # Saves relevance of features for reference
+        shap_summary_plot(lgbm, X_train_prepro, X_test_prepro,
+                          f'{model_name}_{evaluation_metric}')
 
-    # Probability prediction of the minority class (1) for test set
-    y_pred_test = lgbm.predict_proba(X_test)[:, 1]
+        # Class prediction of the minority class (1) for train set
+        y_pred_train = lgbm.predict(X_train_prepro)
 
-    # -----------------------------------------------------------------------------------
+        # Probability prediction of the minority class (1) for test set
+        y_pred_test = lgbm.predict_proba(X_test_prepro)[:, 1]
 
-    # ------------------- Optimization of the probabilistic threshold -------------------
+        # -----------------------------------------------------------------------------------
 
-    opt_thresholds = {
-        'noopt': 0.5,
-        'optroc': opt_moving_thresh_roc(y_test, y_pred_test),
-        'optprecisionrecall': opt_moving_thresh_pr(y_test, y_pred_test),
-        'optfscore': opt_moving_thresh_fs(y_test, y_pred_test)
-    }
+        # ------------------- Optimization of the probabilistic threshold -------------------
 
-    # Checkpoint
-    print(
-        f'Optimal probabilistic thresholds computed for {evaluation_metric}!')
-
-    # -----------------------------------------------------------------------------------
-
-    # ---------------- Output: model and probabilistic adjustment method ----------------
-
-    for thresh_name, thresh_value in opt_thresholds.items():
-
-        # Results with adjustment of the probabilistic threshold
-        y_pred_test_tuned_thresh = np.where(y_pred_test >= thresh_value, 1, 0)
-
-        # Computes the most relevant metrics of a classifier based on train set
-        model_metrics_dict_train = model_metrics_func(y_train, y_pred_train)
-
-        # Computes the most relevant metrics of a classifier based on test set
-        model_metrics_dict_test = model_metrics_func(
-            y_test, y_pred_test_tuned_thresh)
-
-        streamlit_metrics_dict = {
-            'model': model_name,
-            'grid_evaluation_metric': evaluation_metric,
-            'optimization': thresh_name,
-            'prob_treshold': thresh_value,
-            'accuracy': model_metrics_dict_test.get('model_accuracy_score'),
-            'precision': model_metrics_dict_test.get('model_precision_score'),
-            'recall': model_metrics_dict_test.get('model_recall_score'),
-            'rocauc': model_metrics_dict_test.get('model_roc_auc_score'),
-            'f1': model_metrics_dict_test.get('model_f1_score'),
-            'error': model_metrics_dict_test.get('model_error'),
-            'conf_interval': model_metrics_dict_test.get('model_confidence_interval')
+        opt_thresholds = {
+            'noopt': 0.5,
+            'optroc': opt_moving_thresh_roc(y_test_prepro, y_pred_test),
+            'optprecisionrecall': opt_moving_thresh_pr(y_test_prepro, y_pred_test),
+            'optfscore': opt_moving_thresh_fs(y_test_prepro, y_pred_test)
         }
 
-        # Convert dictionary to pandas dataframe
-        df_streamlit_metrics = pd.DataFrame(
-            [streamlit_metrics_dict], columns=streamlit_metrics_dict.keys())
+        # Checkpoint
+        print(
+            f'Optimal probabilistic thresholds computed for {evaluation_metric}!')
 
-        # Saves model scores in .pkl format
-        with open(f'./model_metrics/{model_name}_{evaluation_metric}_{thresh_name}_scores.pkl', mode='wb') as file:
-            pickle.dump(df_streamlit_metrics, file)
+        # -----------------------------------------------------------------------------------
 
-        # Saves model scores in .txt format
-        with open(f'./model_metrics/resultados_{model_name}_{evaluation_metric}_{thresh_name}.txt', mode='w') as report:
-            print(f'Model: {model_name}', file=report)
-            print(
-                f'Model best parameters {grid_search.best_params_} \n', file=report)
-            print(f'Database used: Test', file=report)
-            print(
-                f'GridSearchCV evaluation metric: {evaluation_metric}', file=report)
-            print(f'Otimizador: {thresh_name} \n', file=report)
-            print('Confusion Matrix:', file=report)
-            print(model_metrics_dict_test.get(
-                'model_confusion_matrix'), file=report)
-            print('\n Classification report:', file=report)
-            print(model_metrics_dict_test.get(
-                'model_classification_report'), file=report)
-            print('Other metrics: \n', file=report)
-            print(
-                f'Optimal probabilistic treshold: {thresh_value}', file=report)
-            print('Overall Accuracy score for test set: {0:.4f}'.format(
-                model_metrics_dict_test.get('model_accuracy_score')), file=report)
-            print('Overall ROCAUC score for test set: {0:.4f}'.format(
-                model_metrics_dict_test.get('model_roc_auc_score')), file=report)
-            print('Overall F1 score for test set: {0:.4f}'.format(
-                model_metrics_dict_test.get('model_f1_score')), file=report)
-            print(
-                f"Error:{model_metrics_dict_test.get('model_error')}", file=report)
-            print(
-                f"Confidence interval:{model_metrics_dict_test.get('model_confidence_interval')} \n", file=report)
-            print(
-                '------------------------------------------------------------ \n', file=report)
-            print(f'Model: {model_name}', file=report)
-            print(f'Database used: Train', file=report)
-            print(
-                f'GridSearchCV evaluation metric: {evaluation_metric}', file=report)
-            print(f'Otimizador: {thresh_name} \n', file=report)
-            print('Confusion Matrix:', file=report)
-            print(model_metrics_dict_train.get(
-                'model_confusion_matrix'), file=report)
-            print('\n Classification report:', file=report)
-            print(model_metrics_dict_train.get(
-                'model_classification_report'), file=report)
-            print('Other metrics: \n', file=report)
-            print(
-                f'Optimal probabilistic treshold: {thresh_value}', file=report)
-            print('Overall Accuracy score for train set: {0:.4f}'.format(
-                model_metrics_dict_train.get('model_accuracy_score')), file=report)
-            print('Overall ROCAUC score for train set: {0:.4f}'.format(
-                model_metrics_dict_train.get('model_roc_auc_score')), file=report)
-            print('Overall F1 score for train set: {0:.4f}'.format(
-                model_metrics_dict_train.get('model_f1_score')), file=report)
-            print(
-                f"Error:{model_metrics_dict_train.get('model_error')}", file=report)
-            print(
-                f"Confidence interval:{model_metrics_dict_train.get('model_confidence_interval')} \n", file=report)
-            print(
-                '------------------------------------------------------------', file=report)
+        # ---------------- Output: model and probabilistic adjustment method ----------------
+
+        for thresh_name, thresh_value in opt_thresholds.items():
+
+            # Results with adjustment of the probabilistic threshold
+            y_pred_test_tuned_thresh = np.where(
+                y_pred_test >= thresh_value, 1, 0)
+
+            # Computes the most relevant metrics of a classifier based on train set
+            model_metrics_dict_train = model_metrics_func(
+                y_train_prepro, y_pred_train)
+
+            # Computes the most relevant metrics of a classifier based on test set
+            model_metrics_dict_test = model_metrics_func(
+                y_test_prepro, y_pred_test_tuned_thresh)
+
+            streamlit_metrics_dict = {
+                'model': model_name,
+                'grid_evaluation_metric': evaluation_metric,
+                'optimization': thresh_name,
+                'prob_treshold': thresh_value,
+                'accuracy': model_metrics_dict_test.get('model_accuracy_score'),
+                'precision': model_metrics_dict_test.get('model_precision_score'),
+                'recall': model_metrics_dict_test.get('model_recall_score'),
+                'rocauc': model_metrics_dict_test.get('model_roc_auc_score'),
+                'f1': model_metrics_dict_test.get('model_f1_score'),
+                'error': model_metrics_dict_test.get('model_error'),
+                'conf_interval': model_metrics_dict_test.get('model_confidence_interval')
+            }
+
+            # Convert dictionary to pandas dataframe
+            df_streamlit_metrics = pd.DataFrame(
+                [streamlit_metrics_dict], columns=streamlit_metrics_dict.keys())
+
+            # Saves model scores in .pkl format
+            with open(f'./model_metrics/{model_name}_{evaluation_metric}_{thresh_name}_scores.pkl', mode='wb') as file:
+                pickle.dump(df_streamlit_metrics, file)
+
+            # Saves model scores in .txt format
+            with open(f'./model_metrics/resultados_{model_name}_{evaluation_metric}_{thresh_name}.txt', mode='w') as report:
+                print(f'Model: {model_name}', file=report)
+                print(
+                    f'Model best parameters {grid_search.best_params_} \n', file=report)
+                print(
+                    f'Optimal number of features: {len(X_test_prepro.columns)} \n', file=report)
+                print(f'Database used: Test', file=report)
+                print(
+                    f'GridSearchCV evaluation metric: {evaluation_metric}', file=report)
+                print(f'Otimizador: {thresh_name} \n', file=report)
+                print('Confusion Matrix:', file=report)
+                print(model_metrics_dict_test.get(
+                    'model_confusion_matrix'), file=report)
+                print('\n Classification report:', file=report)
+                print(model_metrics_dict_test.get(
+                    'model_classification_report'), file=report)
+                print('Other metrics: \n', file=report)
+                print(
+                    f'Optimal probabilistic treshold: {thresh_value}', file=report)
+                print('Overall Accuracy score for test set: {0:.4f}'.format(
+                    model_metrics_dict_test.get('model_accuracy_score')), file=report)
+                print('Overall ROCAUC score for test set: {0:.4f}'.format(
+                    model_metrics_dict_test.get('model_roc_auc_score')), file=report)
+                print('Overall F1 score for test set: {0:.4f}'.format(
+                    model_metrics_dict_test.get('model_f1_score')), file=report)
+                print(
+                    f"Error:{model_metrics_dict_test.get('model_error')}", file=report)
+                print(
+                    f"Confidence interval:{model_metrics_dict_test.get('model_confidence_interval')} \n", file=report)
+                print(
+                    '------------------------------------------------------------ \n', file=report)
+                print(f'Model: {model_name}', file=report)
+                print(
+                    f'Model best parameters {grid_search.best_params_} \n', file=report)
+                print(
+                    f'Optimal number of features: {len(X_train_prepro.columns)} \n', file=report)
+                print(f'Database used: Train', file=report)
+                print(
+                    f'GridSearchCV evaluation metric: {evaluation_metric}', file=report)
+                print(f'Otimizador: {thresh_name} \n', file=report)
+                print('Confusion Matrix:', file=report)
+                print(model_metrics_dict_train.get(
+                    'model_confusion_matrix'), file=report)
+                print('\n Classification report:', file=report)
+                print(model_metrics_dict_train.get(
+                    'model_classification_report'), file=report)
+                print('Other metrics: \n', file=report)
+                print(
+                    f'Optimal probabilistic treshold: {thresh_value}', file=report)
+                print('Overall Accuracy score for train set: {0:.4f}'.format(
+                    model_metrics_dict_train.get('model_accuracy_score')), file=report)
+                print('Overall ROCAUC score for train set: {0:.4f}'.format(
+                    model_metrics_dict_train.get('model_roc_auc_score')), file=report)
+                print('Overall F1 score for train set: {0:.4f}'.format(
+                    model_metrics_dict_train.get('model_f1_score')), file=report)
+                print(
+                    f"Error:{model_metrics_dict_train.get('model_error')}", file=report)
+                print(
+                    f"Confidence interval:{model_metrics_dict_train.get('model_confidence_interval')} \n", file=report)
+                print(
+                    '------------------------------------------------------------', file=report)
 
     # Checkpoint
     print('Models metrics saved!')

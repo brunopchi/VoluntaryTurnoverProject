@@ -1,61 +1,67 @@
 Model: lgbmclassifier
-Model best parameters {'lgbmclassifier__boosting_type': 'gbdt', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 7, 'lgbmclassifier__n_estimators': 500, 'lgbmclassifier__num_leaves': 7, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.4263724987172908} 
+Model best parameters {'lgbmclassifier__boosting_type': 'gbdt', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 9, 'lgbmclassifier__n_estimators': 700, 'lgbmclassifier__num_leaves': 11, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.4017857142857144} 
+
+Optimal number of features: 3 
 
 Database used: Test
 GridSearchCV evaluation metric: precision
 Otimizador: optroc 
 
 Confusion Matrix:
-[[1647  380]
- [ 146  689]]
+[[1605  422]
+ [ 124  711]]
 
  Classification report:
               precision    recall  f1-score   support
 
-           0       0.92      0.81      0.86      2027
-           1       0.64      0.83      0.72       835
+           0       0.93      0.79      0.85      2027
+           1       0.63      0.85      0.72       835
 
-    accuracy                           0.82      2862
+    accuracy                           0.81      2862
    macro avg       0.78      0.82      0.79      2862
-weighted avg       0.84      0.82      0.82      2862
+weighted avg       0.84      0.81      0.82      2862
 
 Other metrics: 
 
-Optimal probabilistic treshold: 0.3237
-Overall Accuracy score for test set: 0.8162
-Overall ROCAUC score for test set: 0.8188
-Overall F1 score for test set: 0.7237
-Error:0.18378756114605166
-Confidence interval:0.014189951743027066 
+Optimal probabilistic treshold: 0.1265
+Overall Accuracy score for test set: 0.8092
+Overall ROCAUC score for test set: 0.8217
+Overall F1 score for test set: 0.7226
+Error:0.19077568134171907
+Confidence interval:0.014395184188150372 
 
 ------------------------------------------------------------ 
 
 Model: lgbmclassifier
+Model best parameters {'lgbmclassifier__boosting_type': 'gbdt', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 9, 'lgbmclassifier__n_estimators': 700, 'lgbmclassifier__num_leaves': 11, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.4017857142857144} 
+
+Optimal number of features: 3 
+
 Database used: Train
 GridSearchCV evaluation metric: precision
 Otimizador: optroc 
 
 Confusion Matrix:
-[[4552  177]
- [  17 1932]]
+[[4554   19]
+ [   0 1904]]
 
  Classification report:
               precision    recall  f1-score   support
 
-           0       1.00      0.96      0.98      4729
-           1       0.92      0.99      0.95      1949
+           0       1.00      1.00      1.00      4573
+           1       0.99      1.00      1.00      1904
 
-    accuracy                           0.97      6678
-   macro avg       0.96      0.98      0.97      6678
-weighted avg       0.97      0.97      0.97      6678
+    accuracy                           1.00      6477
+   macro avg       1.00      1.00      1.00      6477
+weighted avg       1.00      1.00      1.00      6477
 
 Other metrics: 
 
-Optimal probabilistic treshold: 0.3237
-Overall Accuracy score for train set: 0.9709
-Overall ROCAUC score for train set: 0.9769
-Overall F1 score for train set: 0.9522
-Error:0.029050613956274285
-Confidence interval:0.004028179522181604 
+Optimal probabilistic treshold: 0.1265
+Overall Accuracy score for train set: 0.9971
+Overall ROCAUC score for train set: 0.9979
+Overall F1 score for train set: 0.9950
+Error:0.0029334568473058376
+Confidence interval:0.001317106965725218 
 
 ------------------------------------------------------------

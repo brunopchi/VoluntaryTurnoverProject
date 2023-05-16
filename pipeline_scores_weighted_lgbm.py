@@ -117,7 +117,7 @@ def easy_target_variable_organizer(df, target_variable):
         Pandas series containing the target variable (dependent).
     """
 
-    # Move target_variable column 'SaidaVoluntaria' to the last position
+    # Move target_variable column to the last position
     df = df.reindex(
         columns=[col for col in df.columns if col != target_variable] + [target_variable])
 
@@ -718,7 +718,7 @@ for evaluation_metric in evaluation_metric_list:
 
     # Identify outilers in the training dataset
     iso = IsolationForest(
-        n_estimators=200, contamination=0.03, random_state=42)
+        n_estimators=100, contamination=0.03, random_state=42)
     yhat = iso.fit_predict(X_train_out)
 
     # Checkpoint

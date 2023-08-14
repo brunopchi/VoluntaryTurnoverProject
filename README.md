@@ -1,4 +1,4 @@
-# Modelo preditivo de rsecisão voluntária
+# Modelo preditivo de rescisão voluntária
 
 Produto entregue como modelo piloto para teste e coleta de feedback. Trata-se de um modelo preditivo de recisão voluntária.
 
@@ -110,7 +110,7 @@ Descrição dos dados:
 - "departamento" - o departamento a que o empregado pertence.
 - "promovido" - 1 se o empregado foi promovido nos 24 meses anteriores, 0 caso contrário.
 - "revisão" - a pontuação composta que o funcionário recebeu na sua última avaliação.
-- "projectos" - quantos projectos o funcionário está envolvido.
+- "projetos" - quantos projetos o funcionário está envolvido.
 - "salário" - por razões de confidencialidade, o salário vem em três níveis: baixo, médio, alto.
 - "permanência" - quantos anos o funcionário esteve na empresa.
 - "satisfação" - uma medida de satisfação do empregado, a partir de questionários.

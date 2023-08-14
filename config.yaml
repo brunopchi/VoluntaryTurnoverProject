@@ -1,37 +1,13 @@
 credentials:
   usernames:
     bruno.chimetta:
-      email: bruno.chimetta@cogna.com.br
+      email: brunopchimetta@gmail.com
       name: Bruno
       password: '$2b$12$cS8b1N1v.A1BHzO.NVGkmuJzSUnS6m7T37pp8p7OS/stO06r4ZF7C' # To be replaced with hashed password
-    elson.junior:
-      email: elson.junior@cogna.com.br
-      name: Elson
-      password: '$2b$12$9ueAeO/hGKRFIe/qCi2rY.baw33RWfxGHJAe1qNlQNKohZ9N3bbu2' # To be replaced with hashed password
-    fabio.lacerda:
-      email: fabio.lacerda@cogna.com.br
-      name: Fabio
-      password: '$2b$12$nwT4It27PZ117Id87HnytOAAf1cl5L9pHjINjTKKidrVwJR2/Jr6u' # To be replaced with hashed password
-    anderson.hass:
-      email: anderson.hass@somoseducacao.com.br
-      name: Anderson
-      password: '$2b$12$UzAtPHV0.CfbJ/2U1wzp3.9l6y60q6Db1PvphFewGuKP6moupfJ/u' # To be replaced with hashed password
-    daniela.ono:
-      email: daniela.ono@somoseducacao.com.br
-      name: Daniela
-      password: '$2b$12$MqI7MBi8c5/V0xdRgPQPj.cfdRvmS0L3H9Dr.DHi7hwzCfyiiu5Iu' # To be replaced with hashed password
-    andreia.moretti:
-      email: andreia.moretti@somoseducacao.com.br
-      name: Andreia
-      password: '$2b$12$W22738n61f6OxeXBmT6a/OPkoflbntKCBz5Rf5Liur.Lgm7KjasGe' # To be replaced with hashed password
-    rita.silva:
-      email: rita.silva@somoseducacao.com.br
-      name: Rita
-      password: '$2b$12$eo76zH/HqvNUkcsGcmW0cuLUBStmVBlqqWm.v2wr5iiZneMfROb7K' # To be replaced with hashed password
 cookie:
   expiry_days: 365
   key: random_signature_key
   name: random_cookie_name
 preauthorized:
   emails:
-  - bruno.chimetta@cogna.com.br
+  - brunopchimetta@gmail.com

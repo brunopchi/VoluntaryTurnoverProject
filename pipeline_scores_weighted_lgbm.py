@@ -1,4 +1,4 @@
-# Básico
+# Basic
 import pickle
 import json
 import pandas as pd
@@ -6,11 +6,11 @@ import numpy as np
 from collections import Counter
 from math import sqrt
 
-# Visualização
+# Visualizatioon
 import matplotlib
 import matplotlib.pyplot as plt
 
-# Pipelines, Transformadores e Modelos
+# Pipelines, encoders and models
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.feature_selection import RFECV
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
@@ -21,10 +21,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import IsolationForest
 from lightgbm import LGBMClassifier
 
-# Engenharia de atributos
+# Feature engineering
 import featuretools as ft
 
-# Métricas de avaliação
+# Evaluation metrics
 import shap
 from sklearn.metrics import (
     accuracy_score,
@@ -1091,25 +1091,6 @@ for evaluation_metric in evaluation_metric_list:
         grid_search.fit(X_train_grid, y_train_grid)
 
         print(f'GridSearchCV done for {evaluation_metric}!')
-        # number of elements in a list from this line
-        # print(grid_search.best_estimator_.named_steps['rfecv'].get_support())
-        # print(
-        #    len(grid_search.best_estimator_.named_steps['rfecv'].get_support()))
-        # number_of_features = len(
-        #    grid_search.best_estimator_.named_steps['rfecv'].get_support())
-        # print(grid_search.best_estimator_.n_features_)
-
-        # Boolean map for selected features
-        #X_train_prepro = X_train_prepro.loc[:, grid_search.best_estimator_.named_steps['rfecv'].get_support()]
-        # Boolean map for selected features
-        #X_test_prepro = X_test_prepro.loc[:, grid_search.best_estimator_.named_steps['rfecv'].get_support()]
-
-        # Loading the pre-processed base for model training
-        # with open('./database/dados_pre_processados.pkl', mode='rb') as file:
-        #    X_train, y_train, X_test, y_test = pickle.load(file)
-
-        # Checkpoint
-        #print(f'Pre-processed data loaded for {evaluation_metric}!')
 
         # -----------------------------------------------------------------------------------
 
@@ -1131,21 +1112,6 @@ for evaluation_metric in evaluation_metric_list:
             random_state=grid_search.best_params_[
                 'lgbmclassifier__random_state']
         )
-
-        # Recursive Feature Elimination (RFE) - Best results with 15 features
-        #number_of_features = 15
-        #rfe = RFE(estimator=lgbm, n_features_to_select=number_of_features, step=1)
-
-        # Train RFE
-        #rfe.fit(X_train, y_train)
-
-        # Save trained RFE model
-        # with open(f'./trained_models/rfe_weighted_{evaluation_metric}.pkl', mode='wb') as file:
-        #    pickle.dump(rfe, file)
-
-        # Selection of the most relevant features
-        #X_train_prepro = X_train_prepro.loc[:, rfecv.support_]
-        #X_test_prepro = X_test_prepro.loc[:, rfecv.support_]
 
         # Train the model
         lgbm.fit(X_train_prepro, y_train_prepro)

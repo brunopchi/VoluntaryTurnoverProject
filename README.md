@@ -1,6 +1,6 @@
 # Modelo preditivo de rescisão voluntária
 
-Produto entregue como modelo piloto para teste e coleta de feedback. Trata-se de um modelo preditivo de recisão voluntária.
+Produto entregue como MVP para teste e coleta de feedback. Trata-se de um modelo preditivo de recisão voluntária.
 
 # Versões
 
@@ -29,7 +29,7 @@ Descrição dos Diretórios e arquivos
 ## Árvore para pastas e arquivos
 
 ```bash
-INCLUIR!
+
 ```
 
 ## Diretórios

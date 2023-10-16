@@ -423,7 +423,7 @@ def main():
 
     if st.session_state['authentication_status']:
 
-        #logo = Image.open('./images/cogna_logo.png')
+        #logo = Image.open('./images/no_image.png')
         # st.image(logo)
 
         st.write('')
@@ -453,7 +453,7 @@ def main():
                 menu_icon='app-indicator',
                 default_index=0,
                 styles={
-                    'container': {'padding': '5!important', 'background-color': '#ADD8E6'},
+                    'container': {'padding': '5!important', 'background-color': '#d5def5'},
                     'icon': {'color': 'purple', 'font-size': '20px'},
                     'nav-link': {'font-size': '16px', 'text-align': 'left', 'margin': '0px', '--hover-color': '#8A8AFF'},
                     'nav-link-selected': {'background-color': '#8A8AFF'},
@@ -470,8 +470,8 @@ def main():
             st.subheader('Sobre:')
             st.markdown(
                 '<div style="text-align: justify;"> \
-                Este modelo (piloto) foi desenvolvido para classificar colaboradores que possuem propensão de sair voluntariamente da empresa (rescisão voluntária). \
-                Esta ferramenta tem como objetivo auxiliar \
+                Esta aplicação foi desenvolvida como parte do projeto de TCC do curso MBA USP/ESALQ em Data Science & Analytics, para classificar colaboradores \
+                que possuem propensão de sair voluntariamente da empresa (rescisão voluntária). Esta ferramenta tem como objetivo auxiliar \
                 a tomada de decisão do(a) gestor(a) alinhada principalmente com a experiência e conhecimento do mesmo(a) sobre sua equipe. Essa iniciativa \
                 tem como objetivo reduzir a rescisão voluntária a longo prazo, e contribuir para a permanência de talentos na empresa. Existem duas \
                 funcionalidades neste aplicativo: "Predições Batch" e "Predições Online". ',

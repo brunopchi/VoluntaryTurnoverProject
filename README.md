@@ -1,6 +1,6 @@
 # Modelo preditivo de rescisão voluntária
 
-Produto entregue como MVP para teste e coleta de feedback. Trata-se de um modelo preditivo de recisão voluntária.
+Aplicativo criado para o projeto de TCC da MBA USP/ESALQ em Data Science & Analytics. Trata-se de um modelo preditivo de recisão voluntária.
 
 # Versões
 
@@ -24,12 +24,18 @@ pip config set global.trusted-host "pypi.org files.pythonhosted.org pypi.python.
 
 # Diretórios e arquivos
 
-Descrição dos Diretórios e arquivos
-
-## Árvore para pastas e arquivos
+## Estrutura das pastas do repositório
 
 ```bash
-
+├── database
+├── encoders_scalers
+├── exploratory_analysis
+│   └── data_profiling
+│       └── kaggle_voluntary_turnover_1_plots
+│           ├── AutoViz
+│           └── left
+├── model_metrics
+└── trained_models
 ```
 
 ## Diretórios
@@ -40,38 +46,27 @@ Descrição dos Diretórios e arquivos
 
     encoders_scalres: contém todos os arquivos de encoders e scalers para os cenários de treino e produção.
 
-    images: contém imagens utilizadas no aplicativo.
-
     model_metrics: contém os arquivos de avaliação do modelo com as principais métricas utilizadas no app.
 
     trained_models: contém os modelos treinados para utilização em produção.
 
-## Arquivos
+## Arquivos (diretório raiz)
 
-    abt_training_data.py: script para ingestão dos dados e aplicação das regras de negócio, tendo como output uma tabela analítica com os campos selecionados para pré-processamento.
-
-    abt_prod_data.py: script com as mesas características de "abt_training_data.py", porém realiza a ingestão dos dados que serão base para as predições do modelo. Trata-se da base de produção que será visualizada pelos gestores.
-
-    pipeline_prod_weighted_lgbm.py: script responsável pelo treinamento do modelo utilizado em produção. O pipeline presente neste script já foi selecionado como melhor candidato para treinamento do modelo.
-
-    pipeline_preprocess_prod_data.py: script que contém o pipeline de pré-processamento dos dados gerados por "abt_prod_data.py". Este script só deve ser executado após a execução de "pipeline_prod_weighted_lgbm.py", uma vez que os encoders necessários para pré-processamento da base de produção são treinados neste último.
-
-    pipeline_scores_weighted_lgbm.py: pipeline de treinamento e avaliação para geração de pipelines candidatos a produção. Nele encontram-se todos os cenários implementados no projeto para avaliação do melhor pipeline de pré-processamento, processamento e otimização do modelo final.
+    pipeline_scores_weighted_lgbm.py: pipeline de treinamento e avaliação para geração de modelos candidatos a produção. Nele encontram-se todos os cenários implementados no projeto para avaliação do melhor pipeline de pré-processamento, processamento e otimização do modelo final.
 
     app.py: contém o código fonte para a aplicação. Foi utilizado o framework streamlit.
 
     config.yaml: contém as credenciais de acesso para cada usuário selecionado para participar do piloto.
 
+    requirements.txx: todas as bibliotecas necessárias para a execução do projeto.
+
 # Modo de uso
 
 ## Sequência de execução para treinamento do modelo e execução do app
 
-    1. abt_training_data
-    2. abt_prod_data.py
-        2.1. pipeline_score_weighted_lgbm.py: escolher o melhor pipeline dentre todos possíveis
-    3. pipeline_prod_weighted_lgbm.py: com o melhor pipeline gerado por 2.1
-    4. pipeline_preprocess_prod_data.py
-    5. app.py
+    1. pipeline_score_weighted_lgbm.py: executa todas as combinações programadas de métricas e modelos.
+    2. Escolher o melhor pipeline gerado por 1. e importar em app.py.
+    3. Executar app.py.
 
 Para executar os scripts acima podemos utilizar
 
@@ -86,10 +81,6 @@ python pipeline_score_weighted_lgbm.py
 ```
 
 Nota: nenhum dos scripts aceita parâmetros passados pelo usuário. 
-
-## Arquitetura do produto
-
-![plot](./images/pipeline_modelo_preditivo_turnover.drawio.png)
 
 ## Implementação em produção
 

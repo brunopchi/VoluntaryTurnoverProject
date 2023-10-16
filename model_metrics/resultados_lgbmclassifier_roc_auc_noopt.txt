@@ -1,5 +1,5 @@
 Model: lgbmclassifier
-Model best parameters {'lgbmclassifier__boosting_type': 'dart', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 5, 'lgbmclassifier__n_estimators': 300, 'lgbmclassifier__num_leaves': 11, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.407154129405576} 
+Model best parameters {'lgbmclassifier__boosting_type': 'dart', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 5, 'lgbmclassifier__n_estimators': 200, 'lgbmclassifier__num_leaves': 11, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.4017857142857144} 
 
 Optimal number of features: 3 
 
@@ -8,32 +8,32 @@ GridSearchCV evaluation metric: roc_auc
 Otimizador: noopt 
 
 Confusion Matrix:
-[[1739  288]
- [ 150  685]]
+[[1720  307]
+ [ 148  687]]
 
  Classification report:
               precision    recall  f1-score   support
 
-           0       0.92      0.86      0.89      2027
-           1       0.70      0.82      0.76       835
+           0       0.92      0.85      0.88      2027
+           1       0.69      0.82      0.75       835
 
-    accuracy                           0.85      2862
+    accuracy                           0.84      2862
    macro avg       0.81      0.84      0.82      2862
-weighted avg       0.86      0.85      0.85      2862
+weighted avg       0.85      0.84      0.84      2862
 
 Other metrics: 
 
 Optimal probabilistic treshold: 0.5
-Overall Accuracy score for test set: 0.8470
-Overall ROCAUC score for test set: 0.8391
-Overall F1 score for test set: 0.7577
-Error:0.1530398322851153
-Confidence interval:0.013190309627060196 
+Overall Accuracy score for test set: 0.8410
+Overall ROCAUC score for test set: 0.8356
+Overall F1 score for test set: 0.7512
+Error:0.15897973445143254
+Confidence interval:0.013396624073693623 
 
 ------------------------------------------------------------ 
 
 Model: lgbmclassifier
-Model best parameters {'lgbmclassifier__boosting_type': 'dart', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 5, 'lgbmclassifier__n_estimators': 300, 'lgbmclassifier__num_leaves': 11, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.407154129405576} 
+Model best parameters {'lgbmclassifier__boosting_type': 'dart', 'lgbmclassifier__learning_rate': 0.3, 'lgbmclassifier__max_depth': 5, 'lgbmclassifier__n_estimators': 200, 'lgbmclassifier__num_leaves': 11, 'lgbmclassifier__objective': 'binary', 'lgbmclassifier__random_state': 42, 'lgbmclassifier__scale_pos_weight': 2.4017857142857144} 
 
 Optimal number of features: 3 
 
@@ -42,26 +42,26 @@ GridSearchCV evaluation metric: roc_auc
 Otimizador: noopt 
 
 Confusion Matrix:
-[[4072  504]
- [ 163 1738]]
+[[3988  585]
+ [ 182 1722]]
 
  Classification report:
               precision    recall  f1-score   support
 
-           0       0.96      0.89      0.92      4576
-           1       0.78      0.91      0.84      1901
+           0       0.96      0.87      0.91      4573
+           1       0.75      0.90      0.82      1904
 
-    accuracy                           0.90      6477
-   macro avg       0.87      0.90      0.88      6477
-weighted avg       0.91      0.90      0.90      6477
+    accuracy                           0.88      6477
+   macro avg       0.85      0.89      0.87      6477
+weighted avg       0.89      0.88      0.88      6477
 
 Other metrics: 
 
 Optimal probabilistic treshold: 0.5
-Overall Accuracy score for train set: 0.8970
-Overall ROCAUC score for train set: 0.9021
-Overall F1 score for train set: 0.8390
-Error:0.10297977458700014
-Confidence interval:0.007401951053452466 
+Overall Accuracy score for train set: 0.8816
+Overall ROCAUC score for train set: 0.8882
+Overall F1 score for train set: 0.8179
+Error:0.11841902115176783
+Confidence interval:0.007868844477881174 
 
 ------------------------------------------------------------

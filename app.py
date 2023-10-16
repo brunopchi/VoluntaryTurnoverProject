@@ -800,12 +800,14 @@ def main():
                 probabilistic_threshold*100))
             st.info('Acurácia: {0:.2f}%'.format(
                 metrics.iloc[0, metrics.columns.get_loc('accuracy')]*100))
-            st.info('Recall: {0:.2f}%'.format(
+            st.info('Recall (classe 1): {0:.2f}%'.format(
                 metrics.iloc[0, metrics.columns.get_loc('recall')]*100))
             st.info('ROCAUC: {0:.2f}%'.format(
                 metrics.iloc[0, metrics.columns.get_loc('rocauc')]*100))
-            #st.info('Precisão (classe 1): {0:.2f}%'.format(metrics.iloc[0, metrics.columns.get_loc('precision')]*100))
-            #st.info('F1 (classe 1): {0:.2f}%'.format(metrics.iloc[0, metrics.columns.get_loc('f1')]*100))
+            st.info('Precisão (classe 1): {0:.2f}%'.format(
+                metrics.iloc[0, metrics.columns.get_loc('precision')]*100))
+            st.info('F1 (classe 1): {0:.2f}%'.format(
+                metrics.iloc[0, metrics.columns.get_loc('f1')]*100))
             st.info('Erro: {0:.2f}%'.format(
                 metrics.iloc[0, metrics.columns.get_loc('error')]*100))
             st.info('Margem de erro: +/-{0:.2f}%'.format(

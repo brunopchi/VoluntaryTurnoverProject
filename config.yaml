@@ -4,6 +4,10 @@ credentials:
       email: brunopchimetta@gmail.com
       name: Bruno
       password: '$2b$12$cS8b1N1v.A1BHzO.NVGkmuJzSUnS6m7T37pp8p7OS/stO06r4ZF7C' # To be replaced with hashed password
+    guest:
+      email: None
+      name: guest
+      password: '$2b$12$D4IQA3Op.OY7gu96NUoPuOF8pYY.2V1H6U1hxTVOPtD6pL7epzWK6'
 cookie:
   expiry_days: 365
   key: random_signature_key

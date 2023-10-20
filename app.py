@@ -410,8 +410,8 @@ authenticator = stauth.Authenticate(
     config['preauthorized']
 )
 
-#hashed_passwords = stauth.Hasher(['148536']).generate()
-# print(hashed_passwords)
+#hashed_passwords = stauth.Hasher(['aaa']).generate()
+#print(hashed_passwords)
 
 # ------------------------------------- Main -------------------------------------
 
@@ -453,15 +453,14 @@ def main():
                 menu_icon='app-indicator',
                 default_index=0,
                 styles={
-                    'container': {'padding': '5!important', 'background-color': '#d5def5'},
+                    'container': {'padding': '5!important'},#, 'background-color': '#8dc6ff'},
                     'icon': {'color': 'purple', 'font-size': '20px'},
                     'nav-link': {'font-size': '16px', 'text-align': 'left', 'margin': '0px', '--hover-color': '#8A8AFF'},
                     'nav-link-selected': {'background-color': '#8A8AFF'},
                 }
             )
         # App version
-        st.sidebar.info('Versão do App: v1.0.0')
-        #st.sidebar.info('Desenvolvido por ')
+        st.sidebar.info('Versão do App: v1.0.25')
         st.sidebar.info('Feedback: brunopchimetta@gmail.com')
 
         if choose == 'Home':
@@ -483,7 +482,7 @@ def main():
                 '<div style="text-align: justify;"> \
                 Disponibiliza uma base de dados com todos os colaboradores. Nesta \
                 base encontram-se as características avaliadas pelo modelo, assim como a classificação desiginada entre 1 (saída voluntária) \
-                e  0 (permanência na empresa). Além da classificação, cada colaborador(a) possue um atributo de probabilidade de rescisão voluntária, também caculado \
+                e  0 (permanência na empresa). Além da classificação, cada colaborador(a) possui um atributo de probabilidade de rescisão voluntária, também caculado \
                 pelo modelo. A classificação é feita com base nesta probabilidade. Por exemplo, um colaborador com uma probabilidade de 60% de chance de rescindir o \
                 contrato de forma voluntária será classificado como 1 (rescisão voluntária), onde o critério para classificação pode ser: 0 (permanência) se menor que \
                 50% e 1 (saída) se maior, ou igual, a 50%.',
@@ -838,11 +837,17 @@ def main():
                 'Fonte dos dados: [Kaggle](https://www.kaggle.com/datasets/marikastewart/employee-turnover)')
 
     elif st.session_state['authentication_status'] == False:
-        st.error('Username/password incorretos')
+        st.error('Username/Password incorretos')
 
     elif st.session_state['authentication_status'] == None:
         st.warning('Por favor, entre com seu username e password')
 
+    #elif st.session_state['authentication_status'] == None or st.session_state['authentication_status'] == False:
+    if st.session_state['authentication_status'] != True:
+        st.warning('''Entre como visitante  
+                   Username: guest  
+                   Password: 123
+                   ''')
 
 if __name__ == '__main__':
     main()
